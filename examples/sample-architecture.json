@@ -1,0 +1,212 @@
+{
+  "meta": {
+    "id": "75d4ab62-9075-466e-9816-fdc85445a6f4",
+    "workflowId": "187ba6d0-006c-4639-ad76-9da8a54e9935",
+    "schemaVersion": "1.0",
+    "createdAt": "2026-11-05T21:00:47.881035646Z",
+    "provenance": {
+      "producedBy": "ARCHITECT",
+      "model": "fake-task-api",
+      "inputs": [
+        {
+          "id": "80c5e055-0ac2-4e67-b0a6-89701be33a70",
+          "type": "REQUIREMENTS",
+          "schemaVersion": "1.0"
+        }
+      ],
+      "attempt": 1
+    },
+    "validation": {
+      "issues": [],
+      "valid": true
+    }
+  },
+  "content": {
+    "projectName": "task-manager-api",
+    "basePackage": "com.example.tasks",
+    "components": [
+      {
+        "name": "TaskController",
+        "kind": "REST controller",
+        "responsibility": "HTTP mapping, request validation"
+      },
+      {
+        "name": "TaskService",
+        "kind": "service",
+        "responsibility": "Business logic for task CRUD"
+      },
+      {
+        "name": "TaskRepository",
+        "kind": "repository",
+        "responsibility": "Storage abstraction with an in-memory implementation"
+      },
+      {
+        "name": "ApiExceptionHandler",
+        "kind": "advice",
+        "responsibility": "Maps TaskNotFoundException to 404"
+      }
+    ],
+    "endpoints": [
+      {
+        "method": "POST",
+        "path": "/api/tasks",
+        "description": "Create a task",
+        "requestType": "TaskRequest",
+        "responseType": "TaskResponse",
+        "successStatus": 201
+      },
+      {
+        "method": "GET",
+        "path": "/api/tasks",
+        "description": "List tasks",
+        "responseType": "List<TaskResponse>",
+        "successStatus": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/tasks/{id}",
+        "description": "Get a task",
+        "responseType": "TaskResponse",
+        "successStatus": 200
+      },
+      {
+        "method": "PUT",
+        "path": "/api/tasks/{id}",
+        "description": "Update a task",
+        "requestType": "TaskRequest",
+        "responseType": "TaskResponse",
+        "successStatus": 200
+      },
+      {
+        "method": "DELETE",
+        "path": "/api/tasks/{id}",
+        "description": "Delete a task",
+        "successStatus": 204
+      }
+    ],
+    "entities": [
+      {
+        "name": "Task",
+        "description": "A unit of work",
+        "fields": [
+          {
+            "name": "id",
+            "type": "Long",
+            "constraints": []
+          },
+          {
+            "name": "title",
+            "type": "String",
+            "constraints": [
+              "NotBlank",
+              "Size(max=120)"
+            ]
+          },
+          {
+            "name": "description",
+            "type": "String",
+            "constraints": [
+              "Size(max=1000)"
+            ]
+          },
+          {
+            "name": "status",
+            "type": "TaskStatus",
+            "constraints": []
+          },
+          {
+            "name": "createdAt",
+            "type": "Instant",
+            "constraints": []
+          }
+        ]
+      }
+    ],
+    "dtos": [
+      {
+        "name": "TaskRequest",
+        "description": "Create/update payload",
+        "fields": [
+          {
+            "name": "title",
+            "type": "String",
+            "constraints": [
+              "NotBlank",
+              "Size(max=120)"
+            ]
+          },
+          {
+            "name": "description",
+            "type": "String",
+            "constraints": []
+          },
+          {
+            "name": "status",
+            "type": "TaskStatus",
+            "constraints": []
+          }
+        ]
+      },
+      {
+        "name": "TaskResponse",
+        "description": "Task representation",
+        "fields": [
+          {
+            "name": "id",
+            "type": "Long",
+            "constraints": []
+          },
+          {
+            "name": "title",
+            "type": "String",
+            "constraints": []
+          },
+          {
+            "name": "description",
+            "type": "String",
+            "constraints": []
+          },
+          {
+            "name": "status",
+            "type": "TaskStatus",
+            "constraints": []
+          },
+          {
+            "name": "createdAt",
+            "type": "Instant",
+            "constraints": []
+          }
+        ]
+      }
+    ],
+    "persistence": {
+      "strategy": "in-memory",
+      "description": "ConcurrentHashMap behind a TaskRepository interface so a JPA implementation can replace it."
+    },
+    "dependencies": [
+      {
+        "groupId": "org.springframework.boot",
+        "artifactId": "spring-boot-starter-web",
+        "scope": "compile"
+      },
+      {
+        "groupId": "org.springframework.boot",
+        "artifactId": "spring-boot-starter-validation",
+        "scope": "compile"
+      },
+      {
+        "groupId": "org.springframework.boot",
+        "artifactId": "spring-boot-starter-test",
+        "scope": "test"
+      }
+    ],
+    "decisions": [
+      {
+        "title": "In-memory persistence",
+        "decision": "Use a ConcurrentHashMap repository for the MVP.",
+        "rationale": "Keeps the generated project dependency-light and fast to build; the repository interface allows a later swap to JPA."
+      }
+    ]
+  },
+  "type": "ARCHITECTURE"
+}

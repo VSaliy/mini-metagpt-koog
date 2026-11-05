@@ -1,0 +1,22 @@
+# Optional local services. The application itself runs on the host (./gradlew bootRun).
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: minimetagpt
+      POSTGRES_USER: minimetagpt
+      POSTGRES_PASSWORD: minimetagpt
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U minimetagpt"]
+      interval: 5s
+      retries: 10
+  otel-collector:
+    image: otel/opentelemetry-collector:0.111.0
+    profiles: ["observability"]
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes: ["./scripts/otel-collector.yaml:/etc/otelcol/config.yaml:ro"]
+    ports: ["4318:4318"]
+volumes:
+  pgdata:

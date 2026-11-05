@@ -1,0 +1,109 @@
+{
+  "meta": {
+    "id": "80c5e055-0ac2-4e67-b0a6-89701be33a70",
+    "workflowId": "187ba6d0-006c-4639-ad76-9da8a54e9935",
+    "schemaVersion": "1.0",
+    "createdAt": "2026-11-05T21:00:47.660848374Z",
+    "provenance": {
+      "producedBy": "REQUIREMENTS",
+      "model": "fake-task-api",
+      "inputs": [],
+      "attempt": 1
+    },
+    "validation": {
+      "issues": [],
+      "valid": true
+    }
+  },
+  "content": {
+    "title": "Task Management REST API",
+    "summary": "A Spring Boot REST API for managing tasks with CRUD operations and input validation.",
+    "functionalRequirements": [
+      {
+        "id": "FR-1",
+        "title": "Create task",
+        "description": "Clients can create a task with a title, optional description and status.",
+        "priority": "MUST"
+      },
+      {
+        "id": "FR-2",
+        "title": "Read tasks",
+        "description": "Clients can fetch a single task by id and list all tasks.",
+        "priority": "MUST"
+      },
+      {
+        "id": "FR-3",
+        "title": "Update task",
+        "description": "Clients can update the title, description and status of an existing task.",
+        "priority": "MUST"
+      },
+      {
+        "id": "FR-4",
+        "title": "Delete task",
+        "description": "Clients can delete an existing task.",
+        "priority": "MUST"
+      },
+      {
+        "id": "FR-5",
+        "title": "Validate input",
+        "description": "Invalid task payloads are rejected with HTTP 400.",
+        "priority": "MUST"
+      }
+    ],
+    "nonFunctionalRequirements": [
+      {
+        "id": "NFR-1",
+        "title": "Java 21 / Spring Boot",
+        "description": "Implemented with Java 21 and Spring Boot, built with Maven.",
+        "priority": "MUST"
+      },
+      {
+        "id": "NFR-2",
+        "title": "Testability",
+        "description": "All endpoints are covered by automated JUnit 5 tests.",
+        "priority": "SHOULD"
+      }
+    ],
+    "acceptanceCriteria": [
+      {
+        "id": "AC-1",
+        "requirementId": "FR-1",
+        "description": "POST /api/tasks with a valid body returns 201, a Location header and the created task."
+      },
+      {
+        "id": "AC-2",
+        "requirementId": "FR-2",
+        "description": "GET /api/tasks/{id} returns the task and GET /api/tasks lists created tasks."
+      },
+      {
+        "id": "AC-3",
+        "requirementId": "FR-3",
+        "description": "PUT /api/tasks/{id} updates the task and returns it."
+      },
+      {
+        "id": "AC-4",
+        "requirementId": "FR-4",
+        "description": "DELETE /api/tasks/{id} returns 204 and the task is no longer retrievable."
+      },
+      {
+        "id": "AC-5",
+        "requirementId": "FR-5",
+        "description": "A blank or longer than 120 characters title is rejected with 400."
+      },
+      {
+        "id": "AC-6",
+        "requirementId": "FR-2",
+        "description": "Unknown ids return 404 for get and delete."
+      }
+    ],
+    "assumptions": [
+      "Single-user service without authentication.",
+      "Tasks are stored in memory."
+    ],
+    "openQuestions": [
+      "Is persistence to a database required?",
+      "Are due dates or assignees needed?"
+    ]
+  },
+  "type": "REQUIREMENTS"
+}
