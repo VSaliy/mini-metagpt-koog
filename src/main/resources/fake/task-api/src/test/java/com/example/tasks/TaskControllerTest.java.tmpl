@@ -1,0 +1,121 @@
+package com.example.tasks;
+
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+class TaskControllerTest {
+
+    private static final String VALID = "{\"title\":\"Write docs\",\"description\":\"API docs\",\"status\":\"TODO\"}";
+
+    @Autowired
+    private MockMvc mvc;
+
+    private long createTask(String body) throws Exception {
+        String location = mvc.perform(post("/api/tasks").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getHeader("Location");
+        return Long.parseLong(location.substring(location.lastIndexOf('/') + 1));
+    }
+
+    @Test
+    void createReturns201WithLocationAndBody() throws Exception {
+        mvc.perform(post("/api/tasks").contentType(MediaType.APPLICATION_JSON).content(VALID))
+                .andExpect(status().isCreated())
+                .andExpect(header().exists("Location"))
+                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.title").value("Write docs"))
+                .andExpect(jsonPath("$.status").value("TODO"));
+    }
+
+    @Test
+    void createWithoutStatusDefaultsToTodo() throws Exception {
+        mvc.perform(post("/api/tasks").contentType(MediaType.APPLICATION_JSON).content("{\"title\":\"No status\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value("TODO"));
+    }
+
+    @Test
+    void createWithBlankTitleReturns400() throws Exception {
+        mvc.perform(post("/api/tasks").contentType(MediaType.APPLICATION_JSON).content("{\"title\":\"  \"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createWithTooLongTitleReturns400() throws Exception {
+        String title = "x".repeat(121);
+        mvc.perform(post("/api/tasks").contentType(MediaType.APPLICATION_JSON).content("{\"title\":\"" + title + "\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getReturnsCreatedTask() throws Exception {
+        long id = createTask(VALID);
+        mvc.perform(get("/api/tasks/" + id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.title").value("Write docs"));
+    }
+
+    @Test
+    void getUnknownReturns404() throws Exception {
+        mvc.perform(get("/api/tasks/999999")).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void listContainsCreatedTasks() throws Exception {
+        createTask(VALID);
+        mvc.perform(get("/api/tasks"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(org.hamcrest.Matchers.greaterThanOrEqualTo(1))));
+    }
+
+    @Test
+    void updateChangesFields() throws Exception {
+        long id = createTask(VALID);
+        mvc.perform(put("/api/tasks/" + id).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"Updated\",\"description\":\"d\",\"status\":\"DONE\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Updated"))
+                .andExpect(jsonPath("$.status").value("DONE"));
+    }
+
+    @Test
+    void updateWithInvalidBodyReturns400() throws Exception {
+        long id = createTask(VALID);
+        mvc.perform(put("/api/tasks/" + id).contentType(MediaType.APPLICATION_JSON).content("{\"title\":\"\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void updateUnknownReturns404() throws Exception {
+        mvc.perform(put("/api/tasks/999999").contentType(MediaType.APPLICATION_JSON).content(VALID))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteRemovesTask() throws Exception {
+        long id = createTask(VALID);
+        mvc.perform(delete("/api/tasks/" + id)).andExpect(status().isNoContent());
+        mvc.perform(get("/api/tasks/" + id)).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteUnknownReturns404() throws Exception {
+        mvc.perform(delete("/api/tasks/999999")).andExpect(status().isNotFound());
+    }
+}

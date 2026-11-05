@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: mini-metagpt-koog
+  datasource:
+    url: ${DB_URL:jdbc:h2:file:./data/minimetagpt;DB_CLOSE_ON_EXIT=FALSE}
+    username: ${DB_USER:sa}
+    password: ${DB_PASSWORD:}
+  flyway:
+    enabled: true
+  jackson:
+    default-property-inclusion: non_null
+
+minimetagpt:
+  llm:
+    provider: ${LLM_PROVIDER:fake}        # fake | openai | ollama
+    model: ${LLM_MODEL:}
+    base-url: ${LLM_BASE_URL:}
+    api-key: ${OPENAI_API_KEY:}
+    temperature: 0.2
+    max-output-retries: 1
+  workflow:
+    max-correction-attempts: ${MAX_CORRECTION_ATTEMPTS:2}
+  workspace:
+    root: ${WORKSPACE_ROOT:./workspaces}
+  execution:
+    enabled: ${EXECUTION_ENABLED:true}
+    require-approval: ${EXECUTION_REQUIRE_APPROVAL:true}
+    maven-command: ${MAVEN_COMMAND:mvn}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
+      export:
+        enabled: ${OTEL_TRACES_EXPORT_ENABLED:false}
+
+logging:
+  pattern:
+    level: "%5p [wf=%X{workflowId:-} role=%X{agentRole:-} stage=%X{stage:-}]"

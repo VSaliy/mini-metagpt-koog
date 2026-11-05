@@ -1,0 +1,49 @@
+package com.example.tasks;
+
+import java.time.Instant;
+import java.util.List;
+import org.springframework.stereotype.Service;
+
+@Service
+public class TaskService {
+
+    private final TaskRepository repository;
+
+    public TaskService(TaskRepository repository) {
+        this.repository = repository;
+    }
+
+    public TaskResponse create(TaskRequest request) {
+        TaskStatus status = request.status() == null ? TaskStatus.TODO : request.status();
+        Task task = new Task(repository.nextId(), request.title().trim(), request.description(), status, Instant.now());
+        return TaskResponse.from(repository.save(task));
+    }
+
+    public TaskResponse get(Long id) {
+        return TaskResponse.from(find(id));
+    }
+
+    public List<TaskResponse> list() {
+        return repository.findAll().stream().map(TaskResponse::from).toList();
+    }
+
+    public TaskResponse update(Long id, TaskRequest request) {
+        Task task = find(id);
+        task.setTitle(request.title().trim());
+        task.setDescription(request.description());
+        if (request.status() != null) {
+            task.setStatus(request.status());
+        }
+        return TaskResponse.from(repository.save(task));
+    }
+
+    public void delete(Long id) {
+        if (!repository.deleteById(id)) {
+            throw new TaskNotFoundException(id);
+        }
+    }
+
+    private Task find(Long id) {
+        return repository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
+    }
+}
